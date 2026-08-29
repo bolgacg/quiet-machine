@@ -77,20 +77,20 @@ runbook has no alert, or an alert is neither fault-proven nor unit-tested.
 ## Proof
 
 <!-- proof-table -->
-**Proof run, 2026-08-29 16:10 CEST (bare binaries on a 4-core WSL2 host).**
+**Proof run, 2026-08-29 16:37 CEST (bare binaries on a 4-core WSL2 host).**
 
 Prometheus 3.14.0. Six faults injected on collector-a in turn; every figure below is measured by tools/prove.py.
 
 | fault | alert | fired after | other alerts while it fired | resolved after clear | reached the receiver |
 |---|---|---|---|---|---|
-| mute | QuietMachine | 87s | none | 11s | firing and resolved |
-| silent-writer | SilentWriter | 99s | none | 10s | firing and resolved |
-| hung-poller | HungPoller | 60s | none | 17s | firing and resolved |
-| refusals | SilentRefusals | 91s | none | 6s | firing and resolved |
-| identity | IdentityMismatch | 31s | none | 56s | firing and resolved |
-| pressure | PressureStall (informational) | 35s | none | 31s | firing and resolved |
+| mute | QuietMachine | 93s | none | 19s | firing and resolved |
+| silent-writer | SilentWriter | 97s | none | 16s | firing and resolved |
+| hung-poller | HungPoller | 62s | none | 21s | firing and resolved |
+| refusals | SilentRefusals | 97s | none | 14s | firing and resolved |
+| identity | IdentityMismatch | 38s | none | 66s | firing and resolved |
+| pressure | PressureStall (informational) | 32s | none | 29s | firing only |
 
-Ledger lines at the end of the run: 13. Verdict: PASS.
+Ledger lines at the end of the run: 12. Verdict: PASS.
 <!-- /proof-table -->
 
 ![the front page during a proof run](proof/front-page.png)

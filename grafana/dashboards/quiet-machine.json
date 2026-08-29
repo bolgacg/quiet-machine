@@ -219,7 +219,7 @@
       "type": "prometheus",
       "uid": "prometheus"
      },
-     "expr": "sum(increase(qm_bridge_identity_mismatch_total[5m])) or vector(0)",
+     "expr": "round(sum(increase(qm_bridge_identity_mismatch_total[5m])) or vector(0))",
      "legendFormat": "last 5m",
      "refId": "A"
     }

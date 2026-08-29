@@ -51,7 +51,7 @@ panel("table", "Who is reporting, and who they say they are",
                                                       "renameByName": {"service_name": "service", "service_instance_id": "host:pid"},
                                                       "indexByName": {"service_name": 0, "service_instance_id": 1, "pid": 2, "port": 3, "mode": 4, "fault": 5}}}])
 panel("stat", "Dropped for a false name, last 5 minutes",
-      [('sum(increase(qm_bridge_identity_mismatch_total[5m])) or vector(0)', "last 5m", {})], 14, 10, 5, 7,
+      [('round(sum(increase(qm_bridge_identity_mismatch_total[5m])) or vector(0))', "last 5m", {})], 14, 10, 5, 7,
       fieldConfig=fc(thresholds=[(1, "red")]), options={"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}})
 panel("stat", "Stream backlog behind the bridge",
       [('qm_bridge_stream_pending', "pending", {})], 19, 10, 5, 7,
