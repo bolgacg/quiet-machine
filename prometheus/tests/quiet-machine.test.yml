@@ -162,6 +162,22 @@ tests:
               runbook: runbooks/hung-poller.md
 
   - interval: 5s
+    name: a restarted collector's stale twin must not page as a hung poller
+    input_series:
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-a",service_instance_id="site-1:old"}'
+        values: '0+5x24 120+0x36'
+      - series: 'qm_leg_last_ok_timestamp_seconds{service_name="collector-a",service_instance_id="site-1:old",leg="sensor-a"}'
+        values: '0+5x24 120+0x36'
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-a",service_instance_id="site-1:new"}'
+        values: '0+5x60'
+      - series: 'qm_leg_last_ok_timestamp_seconds{service_name="collector-a",service_instance_id="site-1:new",leg="sensor-a"}'
+        values: '0+5x60'
+    alert_rule_test:
+      - eval_time: 290s
+        alertname: HungPoller
+        exp_alerts: []
+
+  - interval: 5s
     name: every request refused, nothing admitted (incident 5)
     input_series:
       - series: 'qm_admissions_total{service_name="collector-a",outcome="admitted"}'

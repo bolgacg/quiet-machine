@@ -1,0 +1,74 @@
+{
+  "stamp": "2026-08-29 14:12 UTC (GitHub Actions)",
+  "prometheus": "3.14.0",
+  "rows": [
+    {
+      "fault": "mute",
+      "alert": "QuietMachine",
+      "fired_after_s": 84.11406540870667,
+      "other_alerts": [],
+      "resolved_after_s": 16.025482416152954,
+      "quiet_after_s": 0.0035805702209472656,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "silent-writer",
+      "alert": "SilentWriter",
+      "fired_after_s": 94.13225793838501,
+      "other_alerts": [],
+      "resolved_after_s": 14.020480155944824,
+      "quiet_after_s": 0.0018968582153320312,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "hung-poller",
+      "alert": "HungPoller",
+      "fired_after_s": 56.074920654296875,
+      "other_alerts": [],
+      "resolved_after_s": 14.021370649337769,
+      "quiet_after_s": 0.0015993118286132812,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "refusals",
+      "alert": "SilentRefusals",
+      "fired_after_s": 96.1343355178833,
+      "other_alerts": [],
+      "resolved_after_s": 14.02160930633545,
+      "quiet_after_s": 0.0016918182373046875,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "identity",
+      "alert": "IdentityMismatch",
+      "fired_after_s": 30.043503522872925,
+      "other_alerts": [],
+      "resolved_after_s": 66.09753251075745,
+      "quiet_after_s": 0.0015790462493896484,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "pressure",
+      "alert": "PressureStall",
+      "fired_after_s": 40.067251443862915,
+      "other_alerts": [],
+      "resolved_after_s": 30.044596433639526,
+      "quiet_after_s": 0.001772165298461914,
+      "informational": true,
+      "delivered_firing": true,
+      "delivered_resolved": false
+    }
+  ],
+  "ledger_lines": 12,
+  "ok": true
+}

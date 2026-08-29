@@ -1,5 +1,7 @@
 # quiet-machine
 
+[![ci](https://github.com/bolgacg/quiet-machine/actions/workflows/ci.yml/badge.svg)](https://github.com/bolgacg/quiet-machine/actions/workflows/ci.yml)
+
 The machine that stops reporting looks like a quiet machine. This is an
 observability kit built around that sentence: every alert in it fires on the
 absence of progress, not on the presence of an error, because none of the five
@@ -75,6 +77,25 @@ runbook has no alert, or an alert is neither fault-proven nor unit-tested.
 ## Proof
 
 <!-- proof-table -->
+**Proof run, 2026-08-29 16:10 CEST (bare binaries on a 4-core WSL2 host).**
+
+Prometheus 3.14.0. Six faults injected on collector-a in turn; every figure below is measured by tools/prove.py.
+
+| fault | alert | fired after | other alerts while it fired | resolved after clear | reached the receiver |
+|---|---|---|---|---|---|
+| mute | QuietMachine | 87s | none | 11s | firing and resolved |
+| silent-writer | SilentWriter | 99s | none | 10s | firing and resolved |
+| hung-poller | HungPoller | 60s | none | 17s | firing and resolved |
+| refusals | SilentRefusals | 91s | none | 6s | firing and resolved |
+| identity | IdentityMismatch | 31s | none | 56s | firing and resolved |
+| pressure | PressureStall (informational) | 35s | none | 31s | firing and resolved |
+
+Ledger lines at the end of the run: 13. Verdict: PASS.
+<!-- /proof-table -->
+
+![the front page during a proof run](proof/front-page.png)
+
+The compose path runs the same proof on GitHub's runners on every push (`.github/workflows/ci.yml`, job `end-to-end`). The run of 2026-08-29 14:12 UTC (GitHub Actions): QuietMachine 84s, SilentWriter 94s, HungPoller 56s, SilentRefusals 96s, IdentityMismatch 30s, PressureStall 40s; every alert resolved after clear and every firing notification reached the receiver; verdict PASS. Full table in `proof/RESULTS-github-actions.md`.
 
 ## The rules this kit is built on
 
@@ -108,11 +129,17 @@ runbook has no alert, or an alert is neither fault-proven nor unit-tested.
   collector (5 minutes) and CollectorMissing takes over; the handover is
   deliberate and documented in both runbooks. CollectorMissing does not
   cover the bridge.
+- The collector's instance id is the host name, not the process id, so a
+  restart continues the same series. With a per-process id the old process
+  leaves a stale twin behind until it expires, and that twin pages; the
+  first run of this kit did exactly that, which is why HungPoller now
+  matches on instance as well as name and why a unit test pins it.
 - Alertmanager has one route and one receiver. Silences, inhibition and
   on-call routing are not shown.
 - No authentication on NATS, Prometheus or the collector. This is a kit,
   not a deployment.
 - The compose file and the bare-binary runner share every config file, so
-  they cannot drift; the compose path is exercised by CI, the bare-binary
-  path by the proof run recorded above.
+  they cannot drift. The bare-binary path produced the first table above on
+  my own machine; the compose path produces the second in CI. I have no
+  Docker host of my own, and I say so rather than imply one.
 - Terraform is not part of this kit.

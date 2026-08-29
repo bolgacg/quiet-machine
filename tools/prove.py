@@ -134,7 +134,7 @@ def main():
     def cell(v, suffix="s"):
         return "did not" if v is None else f"{v:.0f}{suffix}"
 
-    md = [f"# Proof run, {stamp}", "",
+    md = [f"**Proof run, {stamp}.**", "",
           f"Prometheus {build.get('version')}. Six faults injected on collector-a in turn; every figure below is measured by tools/prove.py.", "",
           "| fault | alert | fired after | other alerts while it fired | resolved after clear | reached the receiver |",
           "|---|---|---|---|---|---|"]

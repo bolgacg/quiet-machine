@@ -158,7 +158,9 @@ exporter = NatsExporter()
 def build_meter():
     resource = Resource.create({
         "service.name": SERVICE,
-        "service.instance.id": f"{socket.gethostname()}:{os.getpid()}",
+        # the instance is the machine, not the process: a restart must continue the
+        # same series, or the stale twin of the old process pages for five minutes
+        "service.instance.id": os.environ.get("QM_INSTANCE", socket.gethostname()),
         "qm.mode": MODE,
     })
     provider = MeterProvider(resource=resource,
@@ -184,8 +186,8 @@ def build_meter():
             yield Observation(v, {"resource": res})
 
     def identity(_):
-        yield Observation(1, {"pid": str(os.getpid()), "port": str(STATUS_PORT), "mode": MODE,
-                              "fault": state.fault or "none"})
+        # the active fault is on /status, not here: a label that changes would churn the series
+        yield Observation(1, {"pid": str(os.getpid()), "port": str(STATUS_PORT), "mode": MODE})
 
     meter.create_observable_gauge("qm_heartbeat_timestamp_seconds", callbacks=[heartbeat],
                                   description="wall clock at the moment of reporting")

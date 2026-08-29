@@ -1,0 +1,74 @@
+{
+  "stamp": "2026-08-29 16:10 CEST (bare binaries on a 4-core WSL2 host)",
+  "prometheus": "3.14.0",
+  "rows": [
+    {
+      "fault": "mute",
+      "alert": "QuietMachine",
+      "fired_after_s": 86.82986879348755,
+      "other_alerts": [],
+      "resolved_after_s": 10.931262493133545,
+      "quiet_after_s": 0.0044863224029541016,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "silent-writer",
+      "alert": "SilentWriter",
+      "fired_after_s": 99.1439139842987,
+      "other_alerts": [],
+      "resolved_after_s": 10.168647289276123,
+      "quiet_after_s": 0.07088017463684082,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "hung-poller",
+      "alert": "HungPoller",
+      "fired_after_s": 60.17838215827942,
+      "other_alerts": [],
+      "resolved_after_s": 16.944393396377563,
+      "quiet_after_s": 0.03856992721557617,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "refusals",
+      "alert": "SilentRefusals",
+      "fired_after_s": 91.04931449890137,
+      "other_alerts": [],
+      "resolved_after_s": 6.022608518600464,
+      "quiet_after_s": 0.011039018630981445,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "identity",
+      "alert": "IdentityMismatch",
+      "fired_after_s": 31.048023462295532,
+      "other_alerts": [],
+      "resolved_after_s": 55.93992638587952,
+      "quiet_after_s": 0.005096912384033203,
+      "informational": false,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    },
+    {
+      "fault": "pressure",
+      "alert": "PressureStall",
+      "fired_after_s": 35.460355281829834,
+      "other_alerts": [],
+      "resolved_after_s": 30.93864107131958,
+      "quiet_after_s": 0.00600123405456543,
+      "informational": true,
+      "delivered_firing": true,
+      "delivered_resolved": true
+    }
+  ],
+  "ledger_lines": 13,
+  "ok": true
+}

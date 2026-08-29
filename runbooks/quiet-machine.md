@@ -16,6 +16,12 @@ not (check BusSilent; if it is firing too, this is not the collector's fault).
    in the stream, the collector is fine and the bridge is the patient.
 3. Only then look at the site's network.
 
+**A restart is not this alert**, as long as the instance id stays the same
+across it; the kit uses the host name for that reason. A collector whose
+instance id changed on restart leaves a stale twin that will page until it
+expires (5 minutes); if you see two instances for one service, that is what
+happened.
+
 **Fixed when** `qm:heartbeat_age_seconds` for the service drops under 10 and
 stays there for two scrapes.
 

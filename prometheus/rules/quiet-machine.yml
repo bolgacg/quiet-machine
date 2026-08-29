@@ -63,7 +63,7 @@ groups:
       - alert: HungPoller
         expr: |
           qm:leg_age_seconds > 30
-            and on(service_name) qm:heartbeat_age_seconds < 30
+            and on(service_name, service_instance_id) qm:heartbeat_age_seconds < 30
         for: 20s
         labels: {severity: page, incident: "4"}
         annotations:
