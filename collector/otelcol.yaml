@@ -1,0 +1,32 @@
+# OpenTelemetry Collector: OTLP in over HTTP, Prometheus exposition out.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 2s
+  # the SDK's own attributes would otherwise become a label on every series
+  resource:
+    attributes:
+      - {key: telemetry.sdk.language, action: delete}
+      - {key: telemetry.sdk.name, action: delete}
+      - {key: telemetry.sdk.version, action: delete}
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    # resource attributes (service.name, service.instance.id, qm.mode) become labels
+    resource_to_telemetry_conversion:
+      enabled: true
+    # a series that stops being reported vanishes after this; CollectorMissing covers the gap
+    metric_expiration: 5m
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [resource, batch]
+      exporters: [prometheus]

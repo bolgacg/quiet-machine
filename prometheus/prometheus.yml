@@ -1,0 +1,19 @@
+# Demo timings: 5s scrape and evaluation so a proof run takes minutes.
+# Production would scrape every 15s to 60s and widen the rule windows in step.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+rule_files:
+  - rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: otelcol
+    honor_labels: true
+    static_configs:
+      - targets: ["otelcol:8889"]

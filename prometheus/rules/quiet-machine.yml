@@ -1,0 +1,89 @@
+# Alert rules as code. Each alert fires on the absence of progress, not on the
+# presence of an error, because none of the incidents behind them produced one.
+# Every alert names its runbook and its incident, and tests/quiet-machine.test.yml
+# proves each one on synthetic series; tools/prove.py proves them on the live stack.
+groups:
+  - name: quiet-machine-recording
+    interval: 5s
+    rules:
+      - record: qm:heartbeat_age_seconds
+        expr: time() - qm_heartbeat_timestamp_seconds
+      - record: qm:leg_age_seconds
+        expr: time() - qm_leg_last_ok_timestamp_seconds
+      - record: qm:bridge_forward_age_seconds
+        expr: time() - qm_bridge_last_forward_timestamp_seconds
+
+  - name: quiet-machine-alerts
+    interval: 5s
+    rules:
+      - alert: QuietMachine
+        expr: qm:heartbeat_age_seconds > 60
+        for: 20s
+        labels: {severity: page, incident: "0"}
+        annotations:
+          summary: "{{ $labels.service_name }} last reported {{ $value | humanizeDuration }} ago"
+          runbook: runbooks/quiet-machine.md
+
+      - alert: CollectorMissing
+        expr: |
+          absent(qm_heartbeat_timestamp_seconds{service_name="collector-a"})
+            or absent(qm_heartbeat_timestamp_seconds{service_name="collector-b"})
+        for: 30s
+        labels: {severity: page, incident: "0"}
+        annotations:
+          summary: "{{ $labels.service_name }} has no series at all; it expired or never registered"
+          runbook: runbooks/collector-missing.md
+
+      - alert: SilentWriter
+        expr: |
+          increase(qm_files_written_total[1m]) > 0
+            and increase(qm_frames_written_total[1m]) == 0
+        for: 30s
+        labels: {severity: page, incident: "1"}
+        annotations:
+          summary: "{{ $labels.service_name }} keeps creating files but has written no frames for a minute"
+          runbook: runbooks/silent-writer.md
+
+      - alert: PressureStall
+        expr: qm_pressure_some_avg10{resource="cpu"} > 20
+        for: 20s
+        labels: {severity: warn, incident: "2"}
+        annotations:
+          summary: "host of {{ $labels.service_name }} has CPU pressure {{ $value | printf \"%.0f\" }}% (some, avg10)"
+          runbook: runbooks/pressure-stall.md
+
+      - alert: IdentityMismatch
+        expr: increase(qm_bridge_identity_mismatch_total[1m]) > 0
+        for: 10s
+        labels: {severity: page, incident: "3"}
+        annotations:
+          summary: "telemetry on subject {{ $labels.subject_service }} claims to be {{ $labels.claimed }}; dropped, not forwarded"
+          runbook: runbooks/identity-mismatch.md
+
+      - alert: HungPoller
+        expr: |
+          qm:leg_age_seconds > 30
+            and on(service_name) qm:heartbeat_age_seconds < 30
+        for: 20s
+        labels: {severity: page, incident: "4"}
+        annotations:
+          summary: "{{ $labels.service_name }} leg {{ $labels.leg }} has not succeeded for {{ $value | humanizeDuration }} while the process keeps reporting"
+          runbook: runbooks/hung-poller.md
+
+      - alert: SilentRefusals
+        expr: |
+          sum by (service_name) (increase(qm_admissions_total{outcome="refused"}[1m])) > 0
+            and sum by (service_name) (increase(qm_admissions_total{outcome="admitted"}[1m])) == 0
+        for: 30s
+        labels: {severity: page, incident: "5"}
+        annotations:
+          summary: "{{ $labels.service_name }} refused every request for a minute and admitted none"
+          runbook: runbooks/silent-refusals.md
+
+      - alert: BusSilent
+        expr: qm:bridge_forward_age_seconds > 60
+        for: 20s
+        labels: {severity: page, incident: "0"}
+        annotations:
+          summary: "the bridge has forwarded nothing for {{ $value | humanizeDuration }}; every collector will look quiet"
+          runbook: runbooks/bus-silent.md

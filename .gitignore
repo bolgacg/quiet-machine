@@ -1,0 +1,8 @@
+.venv/
+.bin/
+data/
+__pycache__/
+*.pyc
+prometheus/prometheus.local.yml
+alertmanager/alertmanager.local.yml
+proof/ci/

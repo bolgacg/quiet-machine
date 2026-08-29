@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: quiet-machine
+    type: file
+    disableDeletion: true
+    options:
+      path: ${QM_DASH_DIR}

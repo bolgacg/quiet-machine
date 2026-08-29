@@ -1,0 +1,198 @@
+# promtool unit tests. Time starts at 0; every series is healthy for the first
+# two minutes and breaks at t=120s, so each alert is asserted silent at 60s and
+# firing once its window and hold time have passed. Values that track time()
+# are written as 0+5x24 (one point per 5s).
+rule_files:
+  - ../rules/quiet-machine.yml
+
+evaluation_interval: 5s
+
+tests:
+  - interval: 5s
+    name: healthy board stays quiet
+    input_series:
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-a"}'
+        values: '0+5x60'
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-b"}'
+        values: '0+5x60'
+      - series: 'qm_files_written_total{service_name="collector-a"}'
+        values: '0+1x60'
+      - series: 'qm_frames_written_total{service_name="collector-a"}'
+        values: '0+250x60'
+      - series: 'qm_pressure_some_avg10{service_name="collector-a",resource="cpu"}'
+        values: '2+0x60'
+      - series: 'qm_leg_last_ok_timestamp_seconds{service_name="collector-a",leg="sensor-c"}'
+        values: '0+5x60'
+      - series: 'qm_admissions_total{service_name="collector-a",outcome="admitted"}'
+        values: '0+50x60'
+      - series: 'qm_admissions_total{service_name="collector-a",outcome="refused"}'
+        values: '0+0x60'
+      - series: 'qm_bridge_last_forward_timestamp_seconds{service_name="bridge"}'
+        values: '0+5x60'
+    alert_rule_test:
+      - eval_time: 290s
+        alertname: QuietMachine
+        exp_alerts: []
+      - eval_time: 290s
+        alertname: CollectorMissing
+        exp_alerts: []
+      - eval_time: 290s
+        alertname: SilentWriter
+        exp_alerts: []
+      - eval_time: 290s
+        alertname: PressureStall
+        exp_alerts: []
+      - eval_time: 290s
+        alertname: HungPoller
+        exp_alerts: []
+      - eval_time: 290s
+        alertname: SilentRefusals
+        exp_alerts: []
+      - eval_time: 290s
+        alertname: BusSilent
+        exp_alerts: []
+
+  - interval: 5s
+    name: the quiet machine (heartbeat freezes at 120s; age passes 60s at 180s; hold 20s)
+    input_series:
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-a"}'
+        values: '0+5x24 120+0x36'
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-b"}'
+        values: '0+5x60'
+    alert_rule_test:
+      - eval_time: 170s
+        alertname: QuietMachine
+        exp_alerts: []
+      - eval_time: 205s
+        alertname: QuietMachine
+        exp_alerts:
+          - exp_labels: {service_name: collector-a, severity: page, incident: "0"}
+            exp_annotations:
+              summary: "collector-a last reported 1m 25s ago"
+              runbook: runbooks/quiet-machine.md
+
+  - interval: 5s
+    name: a collector with no series at all
+    input_series:
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-a"}'
+        values: '0+5x60'
+    alert_rule_test:
+      - eval_time: 60s
+        alertname: CollectorMissing
+        exp_alerts:
+          - exp_labels: {service_name: collector-b, severity: page, incident: "0"}
+            exp_annotations:
+              summary: "collector-b has no series at all; it expired or never registered"
+              runbook: runbooks/collector-missing.md
+
+  - interval: 5s
+    name: files keep appearing, frames stop (incident 1)
+    input_series:
+      - series: 'qm_files_written_total{service_name="collector-a"}'
+        values: '0+1x60'
+      - series: 'qm_frames_written_total{service_name="collector-a"}'
+        values: '0+250x24 6000+0x36'
+    alert_rule_test:
+      - eval_time: 150s
+        alertname: SilentWriter
+        exp_alerts: []
+      - eval_time: 215s
+        alertname: SilentWriter
+        exp_alerts:
+          - exp_labels: {service_name: collector-a, severity: page, incident: "1"}
+            exp_annotations:
+              summary: "collector-a keeps creating files but has written no frames for a minute"
+              runbook: runbooks/silent-writer.md
+
+  - interval: 5s
+    name: CPU pressure climbs (incident 2)
+    input_series:
+      - series: 'qm_pressure_some_avg10{service_name="collector-a",resource="cpu"}'
+        values: '2+0x24 25+0x36'
+      - series: 'qm_pressure_some_avg10{service_name="collector-a",resource="io"}'
+        values: '40+0x60'
+    alert_rule_test:
+      - eval_time: 60s
+        alertname: PressureStall
+        exp_alerts: []
+      - eval_time: 145s
+        alertname: PressureStall
+        exp_alerts:
+          - exp_labels: {service_name: collector-a, resource: cpu, severity: warn, incident: "2"}
+            exp_annotations:
+              summary: "host of collector-a has CPU pressure 25% (some, avg10)"
+              runbook: runbooks/pressure-stall.md
+
+  - interval: 5s
+    name: telemetry under the wrong name (incident 3)
+    input_series:
+      - series: 'qm_bridge_identity_mismatch_total{service_name="bridge",subject_service="collector-a",claimed="collector-b"}'
+        values: '0+0x24 0+1x36'
+    alert_rule_test:
+      - eval_time: 100s
+        alertname: IdentityMismatch
+        exp_alerts: []
+      - eval_time: 140s
+        alertname: IdentityMismatch
+        exp_alerts:
+          - exp_labels: {service_name: bridge, subject_service: collector-a, claimed: collector-b, severity: page, incident: "3"}
+            exp_annotations:
+              summary: "telemetry on subject collector-a claims to be collector-b; dropped, not forwarded"
+              runbook: runbooks/identity-mismatch.md
+
+  - interval: 5s
+    name: one leg hangs while the process keeps reporting (incident 4)
+    input_series:
+      - series: 'qm_heartbeat_timestamp_seconds{service_name="collector-a"}'
+        values: '0+5x60'
+      - series: 'qm_leg_last_ok_timestamp_seconds{service_name="collector-a",leg="sensor-a"}'
+        values: '0+5x60'
+      - series: 'qm_leg_last_ok_timestamp_seconds{service_name="collector-a",leg="sensor-c"}'
+        values: '0+5x24 120+0x36'
+    alert_rule_test:
+      - eval_time: 140s
+        alertname: HungPoller
+        exp_alerts: []
+      - eval_time: 180s
+        alertname: HungPoller
+        exp_alerts:
+          - exp_labels: {service_name: collector-a, leg: sensor-c, severity: page, incident: "4"}
+            exp_annotations:
+              summary: "collector-a leg sensor-c has not succeeded for 1m 0s while the process keeps reporting"
+              runbook: runbooks/hung-poller.md
+
+  - interval: 5s
+    name: every request refused, nothing admitted (incident 5)
+    input_series:
+      - series: 'qm_admissions_total{service_name="collector-a",outcome="admitted"}'
+        values: '0+50x24 1200+0x36'
+      - series: 'qm_admissions_total{service_name="collector-a",outcome="refused"}'
+        values: '0+0x24 0+50x36'
+    alert_rule_test:
+      - eval_time: 150s
+        alertname: SilentRefusals
+        exp_alerts: []
+      - eval_time: 215s
+        alertname: SilentRefusals
+        exp_alerts:
+          - exp_labels: {service_name: collector-a, severity: page, incident: "5"}
+            exp_annotations:
+              summary: "collector-a refused every request for a minute and admitted none"
+              runbook: runbooks/silent-refusals.md
+
+  - interval: 5s
+    name: the bridge stops forwarding
+    input_series:
+      - series: 'qm_bridge_last_forward_timestamp_seconds{service_name="bridge"}'
+        values: '0+5x24 120+0x36'
+    alert_rule_test:
+      - eval_time: 170s
+        alertname: BusSilent
+        exp_alerts: []
+      - eval_time: 205s
+        alertname: BusSilent
+        exp_alerts:
+          - exp_labels: {service_name: bridge, severity: page, incident: "0"}
+            exp_annotations:
+              summary: "the bridge has forwarded nothing for 1m 25s; every collector will look quiet"
+              runbook: runbooks/bus-silent.md

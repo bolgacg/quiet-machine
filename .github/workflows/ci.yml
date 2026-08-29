@@ -1,0 +1,38 @@
+name: ci
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rules-and-units:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt pytest pyyaml
+      - name: promtool
+        run: |
+          curl -sL https://github.com/prometheus/prometheus/releases/download/v3.14.0/prometheus-3.14.0.linux-amd64.tar.gz | tar xz --strip-components=1 prometheus-3.14.0.linux-amd64/promtool
+          ./promtool check rules prometheus/rules/quiet-machine.yml
+          ./promtool test rules prometheus/tests/quiet-machine.test.yml
+      - run: python -m pytest -q tests
+
+  end-to-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install nats-py requests
+      - run: docker compose up -d --build
+      - name: prove every alert on the live stack
+        run: python tools/prove.py --out proof/ci --stamp "$(date -u +'%Y-%m-%d %H:%M UTC') (GitHub Actions)"
+      - name: dashboard is provisioned
+        run: curl -sf http://localhost:3000/api/dashboards/uid/quiet-machine | python -c "import sys,json; d=json.load(sys.stdin)['dashboard']; print(d['title'], len(d['panels']), 'panels')"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: proof, path: proof/ci}
+      - if: always()
+        run: docker compose logs --tail 40; docker compose down -v
