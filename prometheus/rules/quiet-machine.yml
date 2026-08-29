@@ -2,8 +2,12 @@
 # presence of an error, because none of the incidents behind them produced one.
 # Every alert names its runbook and its incident, and tests/quiet-machine.test.yml
 # proves each one on synthetic series; tools/prove.py proves them on the live stack.
+# One group on purpose: the alerts read the recording rules, and only rules in
+# the same group are guaranteed to see each other's results from the same
+# evaluation. Split across groups, an alert can lag its input by one step,
+# which made the unit tests flaky between hosts.
 groups:
-  - name: quiet-machine-recording
+  - name: quiet-machine
     interval: 5s
     rules:
       - record: qm:heartbeat_age_seconds
@@ -13,9 +17,6 @@ groups:
       - record: qm:bridge_forward_age_seconds
         expr: time() - qm_bridge_last_forward_timestamp_seconds
 
-  - name: quiet-machine-alerts
-    interval: 5s
-    rules:
       - alert: QuietMachine
         expr: qm:heartbeat_age_seconds > 60
         for: 20s
