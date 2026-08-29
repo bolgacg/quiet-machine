@@ -47,13 +47,13 @@ row("Identity, not liveness. A 200 on a port says something answered, not what."
 panel("table", "Who is reporting, and who they say they are",
       [('qm_identity_info', "", {"instant": True, "format": "table"})], 0, 10, 14, 7,
       transformations=[{"id": "labelsToFields", "options": {}},
-                       {"id": "organize", "options": {"excludeByName": {"Time": True, "Value": True, "__name__": True, "job": True, "instance": True, "qm_mode": True},
+                       {"id": "organize", "options": {"excludeByName": {"Time": True, "Value": True, "__name__": True, "job": True, "instance": True, "qm_mode": True, "pid": True, "otel_scope_name": True, "otel_scope_version": True, "otel_scope_schema_url": True},
                                                       "renameByName": {"service_name": "service", "service_instance_id": "host:pid"},
                                                       "indexByName": {"service_name": 0, "service_instance_id": 1, "pid": 2, "port": 3, "mode": 4, "fault": 5}}}])
-panel("stat", "Messages dropped for claiming another service's name",
+panel("stat", "Dropped for a false name, last 5 minutes",
       [('sum(increase(qm_bridge_identity_mismatch_total[5m])) or vector(0)', "last 5m", {})], 14, 10, 5, 7,
       fieldConfig=fc(thresholds=[(1, "red")]), options={"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}})
-panel("stat", "Waiting in the stream for the bridge",
+panel("stat", "Stream backlog behind the bridge",
       [('qm_bridge_stream_pending', "pending", {})], 19, 10, 5, 7,
       fieldConfig=fc(thresholds=[(100, "orange"), (1000, "red")]), options={"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}})
 

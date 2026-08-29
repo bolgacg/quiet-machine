@@ -177,7 +177,11 @@
        "__name__": true,
        "job": true,
        "instance": true,
-       "qm_mode": true
+       "qm_mode": true,
+       "pid": true,
+       "otel_scope_name": true,
+       "otel_scope_version": true,
+       "otel_scope_schema_url": true
       },
       "renameByName": {
        "service_name": "service",
@@ -198,7 +202,7 @@
   {
    "id": 6,
    "type": "stat",
-   "title": "Messages dropped for claiming another service's name",
+   "title": "Dropped for a false name, last 5 minutes",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
@@ -262,7 +266,7 @@
   {
    "id": 7,
    "type": "stat",
-   "title": "Waiting in the stream for the bridge",
+   "title": "Stream backlog behind the bridge",
    "datasource": {
     "type": "prometheus",
     "uid": "prometheus"
