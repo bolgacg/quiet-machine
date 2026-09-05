@@ -13,8 +13,8 @@ ordered the way the runbooks are: pressure first, identity second, progress
 third, the alert board last. A fault injector makes each alert fire on
 purpose, and `tools/prove.py` measures that it did.
 
-Built in August 2026 as the follow-up to a Site Reliability Engineer
-application, on the incidents described in the note that went with it.
+Built in August 2026 around six incident patterns from an operations case,
+each one reproduced by a fault and proven by a test.
 
 ## What is in it
 
