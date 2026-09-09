@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How do you catch a machine that fails without an error?</title>
+<meta name="description" content="An interactive public study: a simulated sorting line where five silent failure classes are injected and a presence monitor races the quiet-machine progress rules; then the real kit, with its measured proof run. Bolgaç Gülen, September 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#faf9f7; --ink:#1a1d21; --soft:#5b6470; --faint:#8b95a1;
+  --rule:#e2e0dc; --rule2:#c9c5be; --panel:#f3f1ed; --card:#ffffff;
+  --pos:#2f7d54; --neg:#b03a3a; --accent:#2c4a6b; --amber:#c8860d;
+  --serif:'Newsreader',Georgia,'Times New Roman',serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15.5px;line-height:1.6}
+a{color:var(--accent);text-decoration:none;font-weight:500}
+a:hover{text-decoration:underline}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.mono{font-family:var(--mono)}
+header{padding:52px 0 30px;border-bottom:1px solid var(--rule)}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:14px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.6vw,44px);line-height:1.12;max-width:21em}
+.lede{max-width:46em;margin-top:16px}
+.qgrid{margin:22px 0 4px;display:grid;gap:10px;max-width:48em}
+.qrow{display:flex;gap:10px;align-items:baseline}
+.qrow b{white-space:nowrap}
+.qrow .qa{color:var(--soft)}
+.byline{margin-top:18px;font-size:13.5px;color:var(--soft)}
+button.chip,button.tour-open{font:500 13px var(--sans);border:1px solid var(--rule2);background:var(--card);
+  color:var(--ink);border-radius:16px;padding:5px 13px;cursor:pointer}
+button.chip:hover,button.tour-open:hover{border-color:var(--accent);color:var(--accent)}
+button.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+button.chip.danger.on{background:var(--neg);border-color:var(--neg)}
+h2{font-family:var(--serif);font-weight:600;font-size:26px;margin:0 0 6px}
+section{padding:40px 0;border-bottom:1px solid var(--rule)}
+.sec-label{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.whycare{max-width:46em;margin-bottom:18px}
+.primer ol{max-width:46em;padding-left:20px;display:grid;gap:8px}
+.figure{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;margin:14px 0;overflow-x:auto}
+.figure .cap{font-size:13.5px;color:var(--soft);margin-top:10px;border-top:1px solid var(--rule);padding-top:10px}
+.cap b{color:var(--ink)}
+.glossary{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:14px 18px;margin-top:18px}
+.glossary dt{font-weight:600;margin-top:8px}
+.glossary dd{color:var(--soft);margin-left:0}
+.verdict{background:var(--panel);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:13px 17px;margin:16px 0;max-width:52em}
+.verdict b{display:block;margin-bottom:4px}
+.handover{font-style:italic;color:var(--soft);max-width:46em;margin-top:14px}
+.hint{font-size:13px;color:var(--faint);margin-top:6px}
+.simgrid{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:start}
+@media(max-width:900px){.simgrid{grid-template-columns:1fr}}
+.linecard{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:14px 16px}
+.station{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--rule)}
+.station:last-child{border-bottom:none}
+.station .nm{flex:0 0 92px;font-weight:600;font-size:13.5px}
+.station .nm small{display:block;font-weight:400;color:var(--faint);font-size:11px}
+.station svg{flex:1;min-width:0;width:100%;height:34px}
+.station .rate{flex:0 0 76px;text-align:right;font-family:var(--mono);font-size:13px}
+.station .rate small{display:block;color:var(--faint);font-size:10.5px}
+.station.sick .nm{color:var(--neg)}
+.mon{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:13px 16px;margin-bottom:12px}
+.mon h4{font-size:14px;margin-bottom:2px}
+.mon .sub{font-size:12px;color:var(--faint);margin-bottom:8px}
+.badge{display:inline-block;font-family:var(--mono);font-size:12px;border-radius:4px;padding:2px 9px;font-weight:500}
+.badge.ok{background:#e7f2ea;color:var(--pos)}
+.badge.firing{background:#f7e8e6;color:var(--neg);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.55}}
+.mon .why{font-size:13px;color:var(--soft);margin-top:6px;min-height:38px}
+.scorebd{width:100%;border-collapse:collapse;font-size:13.5px}
+.scorebd th{text-align:left;font-weight:600;border-bottom:1px solid var(--rule2);padding:4px 8px 4px 0}
+.scorebd td{border-bottom:1px solid var(--rule);padding:4px 8px 4px 0}
+.scorebd td.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.scorebd td.miss{color:var(--neg);font-weight:600}
+.scorebd td.hit{color:var(--pos);font-weight:600}
+.fbtns{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
+.simclock{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:8px}
+table.proof{width:100%;border-collapse:collapse;font-size:14px}
+table.proof th{text-align:left;font-weight:600;border-bottom:1px solid var(--rule2);padding:5px 10px 5px 0}
+table.proof td{border-bottom:1px solid var(--rule);padding:5px 10px 5px 0}
+table.proof td.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.alerts{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px;margin-top:10px}
+@media(max-width:760px){.alerts{grid-template-columns:1fr}}
+.alerts .al{font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--rule)}
+.alerts .al b{font-family:var(--mono);font-weight:500;font-size:13px}
+.alerts .al span{color:var(--soft)}
+.pipe{overflow-x:auto}
+.fails{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px 18px}
+.fails li{margin:7px 0;max-width:60em}
+.coda p{max-width:46em;margin-bottom:10px}
+footer{padding:26px 0 60px;font-size:13px;color:var(--faint)}
+#tour{display:none;position:absolute;inset:0;z-index:50;pointer-events:none}
+#tour.on{display:block}
+#tour-hl{position:absolute;border:2px solid var(--amber);border-radius:10px;
+  box-shadow:0 0 0 9999px rgba(20,23,28,.55);pointer-events:none}
+#tour-card{position:absolute;width:min(400px,calc(100vw - 32px));background:var(--card);
+  border:1px solid var(--rule2);border-radius:10px;padding:15px 17px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.18);pointer-events:auto}
+#tour-card .tk{font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.tour-nav{display:flex;gap:8px;align-items:center;margin-top:12px}
+.dots{flex:1;display:flex;gap:5px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--rule2)}
+.dots i.on{background:var(--accent)}
+.tour-btn{font:500 13px var(--sans);border:1px solid var(--rule2);background:var(--card);border-radius:6px;padding:5px 12px;cursor:pointer}
+.tour-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+svg text{font-family:var(--mono);font-size:11px;fill:var(--soft)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">An interactive public study · observability for machines in the field</div>
+    <h1>How do you catch a machine that fails without an error?</h1>
+    <p class="lede">Five production incidents from an estate I run had one thing in common: nothing
+    ever turned red. A recorder wrote empty files for twenty hours, a service was refused 48,752
+    times, and every dashboard stayed green, because the checks measured presence when they should
+    have measured progress. This page lets you inject those five failure classes into a simulated
+    sorting line and watch two monitors race to notice; then it shows the real kit, with its
+    measured proof run.</p>
+    <div class="qgrid">
+      <div class="qrow"><b>Can a green dashboard lie?</b><span class="qa">In the simulator below, a standard liveness check stays green through all five injected failures.</span></div>
+      <div class="qrow"><b>Can the failures be caught?</b><span class="qa">In the real kit's measured proof run, every injected fault fired its alert, the fastest in 32 seconds and the slowest in 97.</span></div>
+      <div class="qrow"><b>What does it take?</b><span class="qa">Eight alert rules that watch progress instead of presence, living in git with unit tests, on a standard open stack.</span></div>
+    </div>
+    <p class="byline">Bolgaç Gülen · September 2026 ·
+      <a href="https://github.com/bolgacg/quiet-machine">code, rules, runbooks and proof logs</a>
+      <button class="tour-open" id="tourbtn" style="margin-left:10px">Guided tour</button></p>
+  </div>
+</header>
+
+<section class="primer" id="primer">
+  <div class="wrap">
+    <div class="sec-label">Section 1 · What you need to know</div>
+    <h2>Five things, then the page makes sense</h2>
+    <ol>
+      <li><b>Telemetry</b> is the stream of numbers a machine reports about itself: items processed,
+      last successful action, queue depth. Monitoring is deciding, from that stream, when to wake a human.</li>
+      <li>The oldest trap in monitoring is <b>presence versus progress</b>: "the process is running
+      and its heartbeat arrives" is presence; "the work counter advanced in the last minute" is
+      progress. A machine can heartbeat forever while doing nothing.</li>
+      <li>An <b>alert rule</b> is a written condition evaluated continuously ("no successful fetch
+      for 60 seconds"). In this kit every rule lives in git, names its runbook, and carries a unit
+      test that proves it fires on its incident's shape and stays silent on a healthy one.</li>
+      <li>The <b>stack</b> is the standard open one, each piece one sentence: NATS is the message
+      bus the telemetry travels on; the OpenTelemetry Collector translates it into metrics;
+      Prometheus stores the metrics and evaluates the rules; Alertmanager delivers what fires;
+      Grafana draws it.</li>
+      <li>The <b>simulator</b> below is a cartoon built for this page: a laundry-style sorting line
+      with compressed time, so failures become visible in seconds. The measured numbers from the
+      real kit follow it, clearly separated.</li>
+    </ol>
+    <dl class="glossary">
+      <dt>Heartbeat</dt><dd>a periodic "I am alive" signal. Proves the process runs; proves nothing about work.</dd>
+      <dt>Presence monitor</dt><dd>the naive check used as the baseline here: green while the process is up and heartbeats arrive within 90 seconds.</dd>
+      <dt>Progress rules</dt><dd>the kit's approach: every station must show advancing work, matching identity, and admitted throughput; each rule fires on the absence of one of those.</dd>
+      <dt>Time to detect</dt><dd>seconds from fault injection to the first firing alert. The simulator counts it live; the real kit's proof script measured it.</dd>
+      <dt>Runbook</dt><dd>the page a responder opens when an alert fires: what it means, what to check first, how it was tested.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="act1">
+  <div class="wrap">
+    <div class="sec-label">Act 1 · The simulator</div>
+    <h2>Make it fail, and watch who notices</h2>
+    <p class="whycare">This act matters because the argument of the whole kit is a single claim:
+    liveness checks miss the failures that matter. The line below sorts items through a feeder, a
+    sorter and three wash lanes. Two monitors watch the same telemetry: a presence monitor, and
+    the kit's progress rules. <b>Click a failure, then Inject.</b> Every failure is one of the five
+    real incidents, translated to this line.</p>
+
+    <div class="fbtns" id="faultbtns"></div>
+    <div class="hint" id="faultdesc"></div>
+
+    <div class="simgrid" style="margin-top:12px">
+      <div class="linecard" id="linecard">
+        <div id="stations"></div>
+        <div class="simclock" id="simclock">simulated time 0:00 · 1 real second = 10 simulated seconds</div>
+      </div>
+      <div>
+        <div class="mon" id="mon-presence">
+          <h4>Presence monitor <span class="badge ok" id="pres-badge">all green</span></h4>
+          <div class="sub">process up + heartbeat within 90 s. The check most estates actually run.</div>
+          <div class="why" id="pres-why">Nothing to report.</div>
+        </div>
+        <div class="mon" id="mon-progress">
+          <h4>Progress rules <span class="badge ok" id="prog-badge">all quiet</span></h4>
+          <div class="sub">the kit's approach: work must advance, identity must match, admissions must flow.</div>
+          <div class="why" id="prog-why">Nothing firing.</div>
+        </div>
+        <div class="mon">
+          <h4>Scoreboard</h4>
+          <div class="sub">time to detect, this session, per monitor</div>
+          <table class="scorebd"><thead><tr><th>failure</th><th class="num">presence</th><th class="num">progress</th></tr></thead>
+          <tbody id="scorerows"><tr><td colspan="3" style="color:var(--faint)">inject a failure to start scoring</td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="verdict" id="verdict1"><b>The presence monitor has not caught a single one.</b>
+    Inject each of the five failures and the pattern repeats: heartbeats keep arriving, the process
+    stays up, and the green badge holds while the line quietly stops doing its job. The progress
+    rules catch each one because each rule demands positive evidence of work, and the time-to-detect
+    column shows the price of the difference.</div>
+    <p class="handover">A simulation proves a design can work, not that an implementation does.
+    The next act is the same idea built on the real stack, with every latency measured.</p>
+  </div>
+</section>
+
+<section id="act2">
+  <div class="wrap">
+    <div class="sec-label">Act 2 · The real kit</div>
+    <h2>The same idea, built and measured</h2>
+    <p class="whycare">quiet-machine is the working version of act 1: two collector services that
+    behave like machines at a customer site, telemetry as OpenTelemetry over NATS JetStream, a
+    bridge that verifies each message's claimed identity against the subject it arrived on, an
+    OpenTelemetry Collector into Prometheus, eight alert rules with promtool unit tests, and an
+    Alertmanager route that writes every notification to a ledger. A fault injector can trigger
+    each incident on purpose, and a proof script measures what happens.</p>
+
+    <div class="figure pipe">
+      <svg id="pipesvg" width="980" height="120" viewBox="0 0 980 120"></svg>
+      <div class="cap"><b>What you see:</b> the path one telemetry message takes, left to right,
+      from the machine to the alert ledger. <b>How to read it:</b> each box is one running process
+      or service from the repository; the bridge in the middle is where a message claiming the
+      wrong identity is dropped and counted. <b>Take-away:</b> every stage is standard and
+      replaceable; the opinions live only in the rules.</div>
+    </div>
+
+    <div class="figure">
+      <table class="proof">
+        <thead><tr><th>fault injected</th><th>alert</th><th class="num">fired after</th><th class="num">resolved after clear</th><th>reached the ledger</th></tr></thead>
+        <tbody>
+          <tr><td>mute (heartbeats continue, work stops)</td><td class="mono">QuietMachine</td><td class="num">93 s</td><td class="num">19 s</td><td>firing and resolved</td></tr>
+          <tr><td>silent writer (files grow by markers, not data)</td><td class="mono">SilentWriter</td><td class="num">97 s</td><td class="num">16 s</td><td>firing and resolved</td></tr>
+          <tr><td>hung poller (one leg stale, others fine)</td><td class="mono">HungPoller</td><td class="num">62 s</td><td class="num">21 s</td><td>firing and resolved</td></tr>
+          <tr><td>silent refusals (gate refuses, status green)</td><td class="mono">SilentRefusals</td><td class="num">97 s</td><td class="num">14 s</td><td>firing and resolved</td></tr>
+          <tr><td>identity (another service answers as this one)</td><td class="mono">IdentityMismatch</td><td class="num">38 s</td><td class="num">66 s</td><td>firing and resolved</td></tr>
+          <tr><td>pressure (host saturated, network blamed)</td><td class="mono">PressureStall</td><td class="num">32 s</td><td class="num">29 s</td><td>firing only (informational)</td></tr>
+        </tbody>
+      </table>
+      <div class="cap"><b>What you see:</b> the kit's proof run of 29 August 2026, copied verbatim
+      from <a href="https://github.com/bolgacg/quiet-machine/blob/master/proof/RESULTS.md">proof/RESULTS.md</a>,
+      measured by <span class="mono">tools/prove.py</span> on bare binaries on a 4-core host.
+      <b>How to read it:</b> each row is one fault injected on a live collector; "fired after" is
+      the true time from injection to the alert firing, which includes the rule's own deliberate
+      waiting period, so a 97 second detection is the rule keeping its promise, not lag.
+      <b>Take-away:</b> all six faults were caught, no other alert fired alongside, and the run's
+      verdict line is PASS with 12 ledger deliveries.</div>
+    </div>
+
+    <h3 style="font-size:17px;margin-top:20px">The eight rules, one line each</h3>
+    <div class="alerts">
+      <div class="al"><b>QuietMachine</b> <span>· heartbeat age over 60 s: the machine stopped reporting.</span></div>
+      <div class="al"><b>SilentWriter</b> <span>· files advance without data frames: incident 1's guard.</span></div>
+      <div class="al"><b>HungPoller</b> <span>· one leg's last success goes stale while the process lives: incident 4.</span></div>
+      <div class="al"><b>SilentRefusals</b> <span>· the admission gate refuses while status stays green: incident 5.</span></div>
+      <div class="al"><b>IdentityMismatch</b> <span>· a message claims a name that does not match its channel: incident 3.</span></div>
+      <div class="al"><b>PressureStall</b> <span>· CPU pressure over 20: read pressure before blaming the network, incident 2.</span></div>
+      <div class="al"><b>CollectorMissing</b> <span>· a machine that should report has no series at all.</span></div>
+      <div class="al"><b>BusSilent</b> <span>· the bridge itself stops forwarding: the watcher is watched.</span></div>
+    </div>
+
+    <div class="verdict"><b>The rules are the product; everything else is plumbing.</b>
+    Each of the eight names the incident it guards against and the runbook a responder opens, and
+    each carries a unit test that proves it fires on its incident's series shape and stays silent
+    on a healthy board. The stack around them is deliberately standard, so the same rules would
+    carry to any Prometheus estate.</div>
+  </div>
+</section>
+
+<section id="fails">
+  <div class="wrap">
+    <div class="sec-label">What this page gets wrong, stated first</div>
+    <h2>Limits and misses</h2>
+    <div class="fails"><ul>
+      <li><b>The simulator is a cartoon.</b> Time is compressed tenfold, rates are invented, and the
+      presence monitor is deliberately the weakest defensible baseline (process up plus heartbeat).
+      A tuned liveness check with rate thresholds would catch some of these; the simulator argues
+      the design point, not a benchmark.</li>
+      <li><b>The proof run is one run on one host.</b> Bare binaries on a 4-core machine, 29 August
+      2026. Latencies will differ elsewhere; what carries is that every alert fired, resolved and
+      delivered, and that the script to re-measure ships with the kit.</li>
+      <li><b>The Docker path is verified only in CI.</b> The compose file passes the end-to-end job
+      on GitHub Actions; it has never been run on my machines, which have no Docker.</li>
+      <li><b>PressureStall is informational.</b> Its threshold is host-dependent and it deliberately
+      does not resolve-notify; it is a diagnosis aid, not a page-me alert.</li>
+      <li><b>No claim of scale.</b> Two simulated collectors, one bus, one Prometheus. Fleet
+      cardinality, retention and federation are real problems this kit does not touch.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="coda" id="coda">
+  <div class="wrap">
+    <div class="sec-label">Coda · Where this comes from, and how to run it</div>
+    <h2>Method and sources</h2>
+    <p><b>Origin.</b> The five failure classes are five real incidents from the production estate I
+    have run since 2024, written up in the note "The quiet machine" that accompanies my Site
+    Reliability Engineer application. Every alert in the kit is one incident's guard, generalised.</p>
+    <p><b>Run it.</b> <span class="mono">git clone github.com/bolgacg/quiet-machine</span>, then
+    <span class="mono">./run-local.sh fetch && ./run-local.sh up</span> on bare binaries, no Docker
+    needed. <span class="mono">tools/fault.py</span> injects any incident;
+    <span class="mono">tools/prove.py</span> re-measures the proof table.</p>
+    <p><b>This page.</b> The simulator is <span class="mono">docs/app.js</span>, plain JavaScript,
+    no libraries; the proof table is copied verbatim from the repository and says so where it
+    appears.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Simulator numbers are computed live in your browser; the proof table is quoted
+  verbatim from proof/RESULTS.md in the repository. Bolgaç Gülen, September 2026.</div>
+</footer>
+
+<div id="tour"><div id="tour-hl"></div><div id="tour-card"></div></div>
+<script src="app.js"></script>
+</body>
+</html>
