@@ -2,6 +2,10 @@
 
 [![ci](https://github.com/bolgacg/quiet-machine/actions/workflows/ci.yml/badge.svg)](https://github.com/bolgacg/quiet-machine/actions/workflows/ci.yml)
 
+Interactive page: https://bolgacg.github.io/quiet-machine/ (inject the five failure
+classes into a simulated line and watch a presence monitor race the progress rules;
+then the measured proof run).
+
 The machine that stops reporting looks like a quiet machine. This is an
 observability kit built around that sentence: every alert in it fires on the
 absence of progress, not on the presence of an error, because none of the five
